@@ -14,25 +14,24 @@ func Unpack(input string) (string, error) {
 
 	builder := &strings.Builder{}
 	for _, v := range input {
-		char := string(v)
+		current := string(v)
 		isDigit := unicode.IsDigit(v)
 
-		if prev == "" && isDigit {
-			return "", ErrInvalidString
-		}
-
 		if prev == "" {
-			prev = char
+			if isDigit {
+				return "", ErrInvalidString
+			}
+			prev = current
 			continue
 		}
 
 		if !isDigit {
 			builder.WriteString(prev)
-			prev = char
+			prev = current
 			continue
 		}
 
-		count, err := strconv.Atoi(char)
+		count, err := strconv.Atoi(current)
 		if err != nil {
 			return "", err
 		}
@@ -41,9 +40,7 @@ func Unpack(input string) (string, error) {
 		prev = ""
 	}
 
-	if prev != "" {
-		builder.WriteString(prev)
-	}
+	builder.WriteString(prev)
 
 	return builder.String(), nil
 }
