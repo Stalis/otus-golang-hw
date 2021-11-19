@@ -9,70 +9,40 @@ import (
 
 var ErrInvalidString = errors.New("invalid string")
 
-type node struct {
-	empty   bool
-	char    rune
-	repeats int
-	next    *node
-}
-
-func emptyNode() *node {
-	return &node{empty: true, repeats: -1}
-}
-
-func newNode(r rune) *node {
-	return &node{empty: false, char: r, repeats: -1}
-}
-
-func parseString(input string) (*node, error) {
-	first := emptyNode()
-	current := first
-
-	for _, v := range input {
-		if unicode.IsDigit(v) {
-			if current.empty || current.repeats > 0 {
-				return nil, ErrInvalidString
-			}
-
-			val, err := strconv.Atoi(string(v))
-			if err != nil {
-				return nil, err
-			}
-
-			current.repeats = val
-		} else {
-			if current.empty {
-				current.empty = false
-				current.char = v
-			} else {
-				if current.repeats < 0 {
-					current.repeats = 1
-				}
-				current.next = newNode(v)
-				current = current.next
-			}
-		}
-	}
-
-	if current.repeats <= 0 {
-		current.repeats = 1
-	}
-
-	return first, nil
-}
-
 func Unpack(input string) (string, error) {
-	first, err := parseString(input)
-	if err != nil {
-		return "", err
-	}
+	var prev string
 
-	builder := strings.Builder{}
-	for node := first; node != nil; node = node.next {
-		if node.repeats <= 0 || node.empty {
+	builder := &strings.Builder{}
+	for _, v := range input {
+		char := string(v)
+		isDigit := unicode.IsDigit(v)
+
+		if prev == "" && isDigit {
+			return "", ErrInvalidString
+		}
+
+		if prev == "" {
+			prev = char
 			continue
 		}
-		builder.WriteString(strings.Repeat(string(node.char), node.repeats))
+
+		if !isDigit {
+			builder.WriteString(prev)
+			prev = char
+			continue
+		}
+
+		count, err := strconv.Atoi(char)
+		if err != nil {
+			return "", err
+		}
+		builder.WriteString(strings.Repeat(prev, count))
+
+		prev = ""
+	}
+
+	if prev != "" {
+		builder.WriteString(prev)
 	}
 
 	return builder.String(), nil
