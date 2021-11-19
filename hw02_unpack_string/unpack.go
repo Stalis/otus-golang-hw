@@ -1,10 +1,11 @@
 package hw02unpackstring
 
 import (
-	"errors"
 	"strconv"
 	"strings"
 	"unicode"
+
+	"github.com/pkg/errors"
 )
 
 var ErrInvalidString = errors.New("invalid string")
@@ -33,7 +34,7 @@ func Unpack(input string) (string, error) {
 
 		count, err := strconv.Atoi(current)
 		if err != nil {
-			return "", err
+			return "", errors.Wrap(err, ErrInvalidString.Error())
 		}
 		builder.WriteString(strings.Repeat(prev, count))
 
