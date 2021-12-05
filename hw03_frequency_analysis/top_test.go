@@ -43,6 +43,12 @@ var text = `Как видите, он  спускается  по  лестни�
 	посидеть у огня и послушать какую-нибудь интересную сказку.
 		В этот вечер...`
 
+const (
+	lessThan10WordsText  = `а б в г`
+	customUnicodeText    = "\u180E b a"
+	sortLatinAndCyrillic = "b \u0430 \u0061 в c б" // \u0430 - Cyrillic `a` \u0061 - Latin `a`
+)
+
 func TestTop10(t *testing.T) {
 	t.Run("no words in empty string", func(t *testing.T) {
 		require.Len(t, Top10(""), 0)
@@ -78,5 +84,34 @@ func TestTop10(t *testing.T) {
 			}
 			require.Equal(t, expected, Top10(text))
 		}
+	})
+
+	t.Run("less then 10 words", func(t *testing.T) {
+		expected := []string{
+			"а", "б", "в", "г",
+		}
+
+		require.Equal(t, expected, Top10(lessThan10WordsText))
+	})
+
+	t.Run("use custom unicode symbols", func(t *testing.T) {
+		expected := []string{
+			"a", "b", "\u180E",
+		}
+
+		require.Equal(t, expected, Top10(customUnicodeText))
+	})
+
+	t.Run("sort latin before cyrillic", func(t *testing.T) {
+		expected := []string{
+			"\u0061", // a Latin
+			"b",
+			"c",
+			"\u0430", // a Cyrillic
+			"б",
+			"в",
+		}
+
+		require.Equal(t, expected, Top10(sortLatinAndCyrillic))
 	})
 }
