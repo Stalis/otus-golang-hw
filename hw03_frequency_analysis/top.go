@@ -20,7 +20,7 @@ func Top10(input string) []string {
 
 	entries := make(map[string]int, len(matches))
 	for _, v := range matches {
-		entries[v] = entries[v] + 1
+		entries[v] += 1
 	}
 
 	keys := make(sort.StringSlice, 0, len(entries))
