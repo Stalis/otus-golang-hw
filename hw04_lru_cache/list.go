@@ -42,12 +42,10 @@ func (l *list) PushFront(v interface{}) *ListItem {
 	if l == nil {
 		return nil
 	}
-	return l.pushFront(v)
+	return l.pushFront(&ListItem{Value: v})
 }
 
-func (l *list) pushFront(v interface{}) *ListItem {
-	item := &ListItem{Value: v}
-
+func (l *list) pushFront(item *ListItem) *ListItem {
 	if l.first == nil {
 		l.first = item
 		l.last = item
@@ -65,12 +63,10 @@ func (l *list) PushBack(v interface{}) *ListItem {
 	if l == nil {
 		return nil
 	}
-	return l.pushBack(v)
+	return l.pushBack(&ListItem{Value: v})
 }
 
-func (l *list) pushBack(v interface{}) *ListItem {
-	item := &ListItem{Value: v}
-
+func (l *list) pushBack(item *ListItem) *ListItem {
 	if l.last == nil {
 		l.last = item
 		l.first = item
@@ -117,5 +113,5 @@ func (l *list) moveToFront(i *ListItem) {
 		return
 	}
 	l.remove(i)
-	l.pushFront(i.Value)
+	l.pushFront(i)
 }
