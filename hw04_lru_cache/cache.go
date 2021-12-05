@@ -29,28 +29,29 @@ func NewCache(capacity int) Cache {
 	}
 }
 
-func (c *lruCache) Set(key Key, value interface{}) (exists bool) {
-	item, exists := c.items[key]
+func (c *lruCache) Set(key Key, value interface{}) bool {
+	if c == nil {
+		return false
+	}
+	return c.set(cacheItem{key, value})
+}
+
+func (c *lruCache) set(i cacheItem) (exists bool) {
+	item, exists := c.items[i.key]
 	if exists {
-		item.Value = value
+		item.Value = i
 		c.queue.MoveToFront(item)
 		return
 	}
 
-	item = c.queue.PushFront(value)
-	c.items[key] = item
+	item = c.queue.PushFront(i)
+	c.items[i.key] = item
 
 	if c.queue.Len() > c.capacity {
 		last := c.queue.Back()
-		var lastKey Key
-		for k, v := range c.items {
-			if v == last.Value {
-				lastKey = k
-				break
-			}
-		}
-		delete(c.items, lastKey)
-		c.queue.Remove(c.queue.Back())
+
+		delete(c.items, last.Value.(cacheItem).key)
+		c.queue.Remove(last)
 	}
 
 	return
@@ -58,14 +59,11 @@ func (c *lruCache) Set(key Key, value interface{}) (exists bool) {
 
 func (c *lruCache) Get(key Key) (val interface{}, exists bool) {
 	item, exists := c.items[key]
-	if !exists {
-		val = nil
-		return
+	if exists {
+		val = item.Value.(cacheItem).value
+		c.queue.MoveToFront(item)
 	}
 
-	val = item.Value
-
-	c.queue.MoveToFront(item)
 	return
 }
 
