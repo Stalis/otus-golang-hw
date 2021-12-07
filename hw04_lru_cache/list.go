@@ -56,7 +56,7 @@ func (l *list) pushFront(item *ListItem) *ListItem {
 	}
 
 	l.count++
-	return l.first
+	return item
 }
 
 func (l *list) PushBack(v interface{}) *ListItem {
@@ -88,6 +88,13 @@ func (l *list) Remove(i *ListItem) {
 }
 
 func (l *list) remove(i *ListItem) {
+	if l.first == i {
+		l.first = i.Next
+	}
+	if l.last == i {
+		l.last = i.Prev
+	}
+
 	if i.Prev != nil {
 		i.Prev.Next = i.Next
 	}
@@ -95,10 +102,10 @@ func (l *list) remove(i *ListItem) {
 		i.Next.Prev = i.Prev
 	}
 
-	l.count--
-
 	i.Next = nil
 	i.Prev = nil
+
+	l.count--
 }
 
 func (l *list) MoveToFront(i *ListItem) {
