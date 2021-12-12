@@ -12,6 +12,34 @@ import (
 	"go.uber.org/goleak"
 )
 
+func TestSmall(t *testing.T) {
+	defer goleak.VerifyNone(t)
+
+	t.Run("5 workers, 10 tasks, 2 errors", func(t *testing.T) {
+		workersCount := 5
+		tasksCount := 10
+		errorsCount := 2
+
+		tasks := make([]Task, 0, tasksCount)
+
+		var runTasksCount int32
+
+		for i := 0; i < tasksCount; i++ {
+			err := fmt.Errorf("error from task %d", i)
+			tasks = append(tasks, func() error {
+				time.Sleep(time.Millisecond * time.Duration(rand.Intn(100)))
+				atomic.AddInt32(&runTasksCount, 1)
+				return err
+			})
+		}
+
+		err := Run(tasks, workersCount, errorsCount)
+
+		require.Truef(t, errors.Is(err, ErrErrorsLimitExceeded), "actual err - %v", err)
+		require.LessOrEqual(t, runTasksCount, int32(workersCount+errorsCount), "extra tasks were started")
+	})
+}
+
 func TestRun(t *testing.T) {
 	defer goleak.VerifyNone(t)
 
