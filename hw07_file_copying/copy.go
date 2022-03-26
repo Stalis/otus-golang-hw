@@ -17,6 +17,10 @@ func Copy(fromPath, toPath string, offset, limit int64) error {
 		return ErrUnsupportedFile
 	}
 
+	if offset > int64(len(data)) {
+		return ErrOffsetExceedsFileSize
+	}
+
 	file, err := os.Create(toPath)
 	if err != nil {
 		return ErrFileWriteNotAllowed
