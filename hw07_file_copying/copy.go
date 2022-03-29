@@ -14,7 +14,6 @@ var (
 	ErrUnsupportedFile       = errors.New("unsupported file")
 	ErrFileWriteNotAllowed   = errors.New("file write is not allowed")
 	ErrOffsetExceedsFileSize = errors.New("offset exceeds file size")
-	ErrReadFailed            = errors.New("read failed")
 )
 
 const BufferSize = 100
@@ -65,7 +64,7 @@ func Copy(fromPath, toPath string, offset, limit int64) error {
 		}
 
 		if err != nil {
-			if err == io.EOF {
+			if errors.Is(err, io.EOF) {
 				break
 			}
 			return ErrFileWriteNotAllowed
