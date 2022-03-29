@@ -5,6 +5,7 @@ import (
 	"errors"
 	"io"
 	"os"
+	"time"
 
 	"github.com/schollz/progressbar/v3"
 )
@@ -35,8 +36,8 @@ func Copy(fromPath, toPath string, offset, limit int64) error {
 		return ErrOffsetExceedsFileSize
 	}
 
-	if limit > size {
-		limit = size
+	if limit > 0 && limit < size {
+		size = limit
 	}
 
 	fromFile.Seek(offset, 0)
@@ -51,9 +52,18 @@ func Copy(fromPath, toPath string, offset, limit int64) error {
 	writer := bufio.NewWriter(toFile)
 
 	pbar := progressbar.Default(size)
+	progress := int64(0)
 	for {
-		n, err := io.CopyN(writer, reader, BufferSize)
-		pbar.Add64(n)
+		n, err := io.CopyN(writer, reader, MinInt64(BufferSize, size-progress))
+		progress += n
+		pbar.Set64(progress)
+
+		time.Sleep(time.Millisecond * 100)
+
+		if progress >= size {
+			break
+		}
+
 		if err != nil {
 			if err == io.EOF {
 				break
@@ -63,4 +73,11 @@ func Copy(fromPath, toPath string, offset, limit int64) error {
 	}
 
 	return nil
+}
+
+func MinInt64(a, b int64) int64 {
+	if a < b {
+		return a
+	}
+	return b
 }
