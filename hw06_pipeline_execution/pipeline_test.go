@@ -2,6 +2,7 @@ package hw06pipelineexecution
 
 import (
 	"strconv"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -89,5 +90,46 @@ func TestPipeline(t *testing.T) {
 
 		require.Len(t, result, 0)
 		require.Less(t, int64(elapsed), int64(abortDur)+int64(fault))
+	})
+
+	t.Run("nil stage with data case", func(t *testing.T) {
+		in := make(Bi)
+		data := []int{1, 2, 3, 4}
+
+		go func() {
+			for _, v := range data {
+				in <- v
+			}
+			close(in)
+		}()
+
+		result := make([]int, 0, 10)
+		for s := range ExecutePipeline(in, nil, nil) {
+			result = append(result, s.(int))
+		}
+
+		require.Equal(t, data, result)
+	})
+
+	t.Run("one stage no data", func(t *testing.T) {
+		in := make(Bi)
+
+		go func() {
+			close(in)
+		}()
+
+		used := int32(0)
+		stage := g("Test stage", func(v interface{}) interface{} {
+			atomic.AddInt32(&used, 1)
+			return v
+		})
+
+		result := make([]interface{}, 0, 1)
+		for s := range ExecutePipeline(in, nil, stage) {
+			result = append(result, s)
+		}
+
+		require.Empty(t, result)
+		require.Equal(t, int32(0), atomic.LoadInt32(&used))
 	})
 }
