@@ -10,10 +10,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-const (
-	TempFilesDir = "otus-copy-test"
-)
-
 func CreateTempFile(content string) (string, error) {
 	file, err := os.CreateTemp(os.TempDir(), "*")
 	if err != nil {
