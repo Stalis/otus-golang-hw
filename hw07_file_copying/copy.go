@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bufio"
 	"errors"
 	"io"
 	"os"
@@ -47,13 +46,10 @@ func Copy(fromPath, toPath string, offset, limit int64) error {
 	}
 	defer toFile.Close()
 
-	reader := bufio.NewReader(fromFile)
-	writer := bufio.NewWriter(toFile)
-
 	pbar := progressbar.Default(size)
 	progress := int64(0)
 	for {
-		n, err := io.CopyN(writer, reader, MinInt64(BufferSize, size-progress))
+		n, err := io.CopyN(toFile, fromFile, MinInt64(BufferSize, size-progress))
 		progress += n
 		pbar.Set64(progress)
 
